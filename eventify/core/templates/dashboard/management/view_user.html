@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+
+<section class="pt-32 pb-24">
+
+<div class="max-w-3xl mx-auto px-6">
+
+    <div class="bg-white/70 backdrop-blur-lg border rounded-2xl p-8">
+
+        <h1 class="text-2xl font-semibold mb-6">
+            {{ user.full_name }}
+        </h1>
+
+        <div class="space-y-3 text-sm text-gray-700">
+
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Phone:</strong> {{ user.phone_number }}</p>
+            <p><strong>Role:</strong> {{ user.role }}</p>
+            <p><strong>Joined:</strong> {{ user.created_at }}</p>
+
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mt-8 flex gap-3">
+
+            <button onclick="changeRole('organizer')"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                Make Organizer
+            </button>
+
+            <button onclick="deactivateUser()"
+                class="px-4 py-2 border border-red-300 text-red-600 rounded-lg">
+                Deactivate
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+<script>
+const userUUID = "{{ user.uuid }}";
+
+function sendAction(data){
+    fetch(`/user/view/${userUUID}/`,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "X-CSRFToken":document.cookie.split('csrftoken=')[1]
+        },
+        body:JSON.stringify(data)
+    })
+    .then(r=>r.json())
+    .then(d=>alert(d.message));
+}
+
+function changeRole(role){
+    sendAction({action:"change_role", role});
+}
+
+function deactivateUser(){
+    sendAction({action:"deactivate"});
+}
+</script>
+
+{% endblock %}

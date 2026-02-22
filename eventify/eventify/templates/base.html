@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Eventify{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full flex justify-center px-4">
+        <nav class="
+            flex items-center gap-2
+            px-4 py-2
+            bg-white/70 backdrop-blur-xl
+            border border-gray-200
+            shadow-lg
+            rounded-2xl
+            max-w-fit
+        ">
+            <a href="/" class="px-3 font-semibold text-gray-900">
+                Eventify
+            </a>
+            <div class="w-px h-6 bg-gray-200"></div>
+            <a href="/" class="nav-pill">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="nav-pill">Dashboard</a>
+            {% endif %}
+            <a href="/events" class="nav-pill">Events</a>
+            <a href="/about" class="nav-pill">About</a>
+            <div class="w-px h-6 bg-gray-200 mx-1"></div>
+            {% if user.is_authenticated %}
+                <span class="text-sm text-gray-500 px-2">
+                    {{ user.username }}
+                </span>
+                <a href="{% url 'logout' %}" class="btn-primary">
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-primary">
+                    Login
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg bg-green-100 text-green-800">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <div class="pt-24">
+        {% block content %}
+        {% endblock %}
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400">
+        <div class="max-w-7xl mx-auto px-6 py-14 grid gap-10 md:grid-cols-4">
+            <div>
+                <h3 class="text-white text-xl font-bold">Eventify</h3>
+                <p class="mt-4 text-sm leading-relaxed">
+                    Event management made simple. Create events, manage attendance,
+                    issue certificates and track engagement - all in one platform.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Product</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition">Features</a></li>
+                    <li><a href="#" class="hover:text-white transition">How it Works</a></li>
+                    <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="#" class="hover:text-white transition">Updates</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Company</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition">About</a></li>
+                    <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    <li><a href="#" class="hover:text-white transition">Support</a></li>
+                    <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Legal</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+                    <li><a href="#" class="hover:text-white transition">Cookie Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800">
+            <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center text-sm">
+                <p>
+                    © {% now "Y" %} Eventify. All rights reserved.
+                </p>
+                <p class="mt-3 md:mt-0 text-gray-500">
+                    Built with Django ❤️
+                </p>
+            </div>
+        </div>
+    </footer>
+    <script>
+    window.addEventListener("scroll", () => {
+    const nav = document.querySelector("nav");
+    if (window.scrollY > 10) {
+        nav.classList.add("shadow-xl");
+    } else {
+        nav.classList.remove("shadow-xl");
+    }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Events{% endblock %}
+
+{% block content %}
+
+<section class="pb-24">
+
+    <div class="max-w-6xl mx-auto px-6">
+
+        <!-- Header -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-semibold text-gray-900">
+                Upcoming Events
+            </h1>
+            <p class="text-gray-500 mt-2">
+                Discover and register for upcoming events.
+            </p>
+        </div>
+
+
+        <!-- EVENTS GRID -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            {% for event in events %}
+
+            <div class="
+                rounded-2xl border border-gray-200
+                bg-white/70 backdrop-blur-lg
+                overflow-hidden
+                hover:bg-white transition
+                flex flex-col
+            ">
+
+                <!-- Banner -->
+                {% if event.banner %}
+                    <img src="{{ event.banner.url }}"
+                         class="h-48 w-full object-cover">
+                {% else %}
+                    <div class="h-48 bg-gray-100"></div>
+                {% endif %}
+
+                <!-- Content -->
+                <div class="p-6 flex flex-col flex-grow">
+
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ event.name }}
+                    </h3>
+
+                    <p class="text-sm text-gray-500 mt-2 line-clamp-3">
+                        {{ event.description|truncatechars:120 }}
+                    </p>
+
+                    <!-- Meta -->
+                    <div class="mt-4 space-y-2 text-sm text-gray-500">
+
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-calendar text-indigo-500"></i>
+                            {{ event.date }}
+                        </div>
+
+                        {% if event.location %}
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-indigo-500"></i>
+                            {{ event.location }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Register Button -->
+                    <div class="mt-auto pt-6">
+
+                        <form method="post"
+                              action="{% url 'register_event' %}">
+                            {% csrf_token %}
+
+                            <input type="hidden"
+                                   name="eventID"
+                                   value="{{ event.id }}">
+
+                            <button
+                                class="register-btn w-full py-2.5 rounded-xl
+                                    bg-gray-900 text-white text-sm font-medium
+                                    transition"
+                                data-event-id="{{ event.eventID }}">
+                                Checking...
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <!-- EMPTY STATE -->
+            <div class="col-span-full text-center py-20">
+
+                <p class="text-gray-400 text-lg">
+                    No events available right now.
+                </p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+<script>
+function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+}
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const buttons = document.querySelectorAll(".register-btn");
+
+    buttons.forEach(btn => {
+        const eventID = btn.dataset.eventId;
+
+        fetch(`/events/api/v1/is-registered/?eventID=${eventID}`)
+            .then(res => res.json())
+            .then(data => updateButton(btn, data.is_registered));
+
+        btn.addEventListener("click", () => {
+
+            const registered = btn.dataset.registered === "true";
+
+            const url = registered
+                ? "/events/api/v1/unregister/"
+                : "/events/api/v1/register/";
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `eventID=${eventID}`
+            })
+            .then(() => {
+                updateButton(btn, !registered);
+            });
+
+        });
+    });
+
+
+    function updateButton(btn, registered) {
+
+        btn.dataset.registered = registered;
+
+        if (registered) {
+            btn.textContent = "Registered ✓";
+            btn.classList.remove("bg-gray-900", "text-white");
+            btn.classList.add("bg-green-100", "text-green-700");
+        } else {
+            btn.textContent = "Register";
+            btn.classList.remove("bg-green-100", "text-green-700");
+            btn.classList.add("bg-gray-900", "text-white");
+        }
+    }
+
+});
+</script>
+{% endblock %}

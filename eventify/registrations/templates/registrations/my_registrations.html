@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Registrations{% endblock %}
+
+{% block content %}
+
+<section class="pb-24">
+
+    <div class="max-w-6xl mx-auto px-6">
+
+        <div class="mb-12">
+            <h1 class="text-4xl font-semibold text-gray-900">
+                My Registrations
+            </h1>
+            <p class="text-gray-500 mt-2">
+                Events you’ve registered for.
+            </p>
+        </div>
+
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            {% for reg in registrations %}
+            {% with event=reg.event %}
+
+            <div class="
+                rounded-2xl border border-gray-200
+                bg-white/70 backdrop-blur-lg
+                overflow-hidden flex flex-col
+            ">
+
+                <!-- Banner -->
+                {% if event.banner %}
+                    <img src="{{ event.banner.url }}"
+                         class="h-48 w-full object-cover">
+                {% else %}
+                    <div class="h-48 bg-gray-100"></div>
+                {% endif %}
+
+                <div class="p-6 flex flex-col flex-grow">
+
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ event.name }}
+                    </h3>
+
+                    <p class="text-sm text-gray-500 mt-2">
+                        {{ event.description|truncatechars:110 }}
+                    </p>
+
+                    <!-- Meta -->
+                    <div class="mt-4 space-y-2 text-sm text-gray-500">
+
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-calendar text-indigo-500"></i>
+                            {{ event.date }}
+                        </div>
+
+                        {% if event.location %}
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-indigo-500"></i>
+                            {{ event.location }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mt-auto pt-6">
+
+                        <form method="post"
+                              action="{% url 'unregister_event' %}">
+                            {% csrf_token %}
+
+                            <input type="hidden"
+                                   name="eventID"
+                                   value="{{ event.eventID }}">
+
+                            <button type="submit"
+                                class="w-full py-2.5 rounded-xl
+                                       border border-red-200
+                                       text-red-600 font-medium
+                                       hover:bg-red-50 transition">
+                                Unregister
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endwith %}
+            {% empty %}
+
+            <!-- EMPTY STATE -->
+            <div class="col-span-full text-center py-20">
+
+                <p class="text-gray-400 text-lg">
+                    You haven't registered for any events yet.
+                </p>
+
+                <a href="{% url 'event_list' %}"
+                   class="inline-block mt-6 px-6 py-3
+                          bg-gray-900 text-white rounded-xl">
+                    Browse Events
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

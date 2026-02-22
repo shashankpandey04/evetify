@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<section class="pb-24">
+<div class="max-w-6xl mx-auto px-6">
+
+    <div class="mb-12">
+        <h1 class="text-4xl font-semibold text-gray-900">
+            Dashboard
+        </h1>
+        <p class="text-gray-500 mt-2">
+            Welcome back, {{ user.username }}.
+        </p>
+    </div>
+
+    {% include "dashboard/components/_stats.html" %}
+
+    {% if is_organizer %}
+        {% include "dashboard/components/_organizer_panel.html" %}
+    {% endif %}
+
+    {% if is_volunteer %}
+        {% include "dashboard/components/_volunteer_panel.html" %}
+    {% endif %}
+
+    {% if is_participant %}
+        {% include "dashboard/components/_participant_panel.html" %}
+    {% endif %}
+
+</div>
+</section>
+
+{% endblock %}

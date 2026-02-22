@@ -1,0 +1,27 @@
+<section class="mt-16">
+
+    <h2 class="text-2xl font-semibold text-gray-900 mb-6">
+        Volunteer Overview
+    </h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="stat-card">
+            <p>Completed Check-ins</p>
+            <h3>{{ stats.total_attendance }}</h3>
+            <span class="text-xs text-gray-400">
+                Events you helped complete
+            </span>
+        </div>
+
+        <div class="stat-card">
+            <p>Certificates Processed</p>
+            <h3>{{ stats.certificates_issued }}</h3>
+            <span class="text-xs text-gray-400">
+                Related participation rewards
+            </span>
+        </div>
+
+    </div>
+
+</section>
