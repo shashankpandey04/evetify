@@ -28,5 +28,8 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     is_active_member = models.BooleanField(default=True)
 
+    cityName = models.CharField(max_length=60, blank=True)
+    countryName = models.CharField(max_length=60, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -37,3 +37,12 @@ class AttendanceManagerView(LoginRequiredMixin, View):
             attendance.checkedOut = True
             attendance.checkedOutBy = request.user
             attendance.save()
+
+class ViewEventAttendanceView(LoginRequiredMixin, View):
+    def get(self, request, eventID):
+        event = Event.objects.get(eventID=eventID)
+        attendances = Attendance.objects.filter(event=event)
+        return render(request, "attendance/view_event_attendance.html", {
+            "event": event,
+            "attendances": attendances
+        })

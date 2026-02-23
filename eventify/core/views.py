@@ -3,9 +3,10 @@ from events.models import Event
 from attendance.models import Attendance
 from accounts.models import User
 from certificates.models import CertificatesModel
+from registrations.models import RegisterEvent
 from django.views import View
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Count
 import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -15,7 +16,7 @@ class DashboardView(LoginRequiredMixin, View):
     def get(self, request):
 
         stats = {
-            "upcoming_events": Event.objects.filter(status="upcoming").count(),
+            "upcoming_events": Event.objects.filter(status="published").count(),
             "total_attendance": Attendance.objects.filter(
                 user=request.user,
                 checkedIn=True,
@@ -34,7 +35,24 @@ class DashboardView(LoginRequiredMixin, View):
         }
 
         if context["is_organizer"]:
-            context["recent_users"] = User.objects.order_by("-created_at")[:5]
+            recent_events = Event.objects.filter(organizer=request.user).annotate(
+                reg_count=Count('registerevent'),
+                vol_count=Count('volunteers')
+            ).order_by('-createdAt')[:5]
+
+            total_registrations = RegisterEvent.objects.filter(event__organizer=request.user).count()
+
+            total_volunteers = User.objects.filter(volunteered_events__organizer=request.user).distinct().count()
+
+            recent_users = User.objects.order_by('-created_at')[:5]
+
+            stats["total_registrations"] = total_registrations
+            stats["total_volunteers"] = total_volunteers
+            context.update({
+                "recent_events": recent_events,
+                "recent_users": recent_users,
+                "stats": stats
+            })
 
         return render(request, "dashboard/dashboard.html", context)
 
@@ -83,7 +101,7 @@ class ViewUser(LoginRequiredMixin, View):
     def get(self, request, uuid):
         user = get_object_or_404(User, uuid=uuid)
 
-        if request.user.role != "organizer" and request.user != user:
+        if request.user.role != "organizer":
             return redirect("dashboard")
         data = {
             "uuid": str(user.uuid),

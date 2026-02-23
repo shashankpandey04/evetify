@@ -1,27 +1,59 @@
-<div class="grid md:grid-cols-3 gap-6">
+<div class="grid md:grid-cols-4 gap-6">
 
-    <div class="stat-card">
-        <p>Upcoming Events</p>
-        <h3>{{ stats.upcoming_events }}</h3>
-        <span class="text-xs text-gray-400">
-            Platform-wide upcoming events
-        </span>
+    <div class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">Upcoming Events</p>
+                <h3 class="text-3xl font-bold text-blue-600 mt-2">{{ stats.upcoming_events }}</h3>
+                <span class="text-xs text-gray-500 mt-1 block">Platform-wide events</span>
+            </div>
+            <div class="text-4xl opacity-20">📅</div>
+        </div>
     </div>
 
-    <div class="stat-card">
-        <p>My Attendance</p>
-        <h3>{{ stats.total_attendance }}</h3>
-        <span class="text-xs text-gray-400">
-            Events fully attended
-        </span>
+    <div class="stat-card bg-gradient-to-br from-green-50 to-green-100 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">My Attendance</p>
+                <h3 class="text-3xl font-bold text-green-600 mt-2">{{ stats.total_attendance }}</h3>
+                <span class="text-xs text-gray-500 mt-1 block">Events attended</span>
+            </div>
+            <div class="text-4xl opacity-20">✓</div>
+        </div>
     </div>
 
-    <div class="stat-card">
-        <p>Certificates Earned</p>
-        <h3>{{ stats.certificates_issued }}</h3>
-        <span class="text-xs text-gray-400">
-            Issued certificates
-        </span>
+    <div class="stat-card bg-gradient-to-br from-purple-50 to-purple-100 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">Certificates</p>
+                <h3 class="text-3xl font-bold text-purple-600 mt-2">{{ stats.certificates_issued }}</h3>
+                <span class="text-xs text-gray-500 mt-1 block">Earned & issued</span>
+            </div>
+            <div class="text-4xl opacity-20">🏆</div>
+        </div>
+    </div>
+    
+    <div class="stat-card bg-gradient-to-br from-indigo-50 to-indigo-100 border-l-4 border-indigo-500 flex flex-col items-center justify-center p-6">
+        <p class="text-gray-600 text-sm font-medium mb-3">My QR Code</p>
+        <img src="http://qr.awslpu.in/v1/create-qr-code/?size=150x150&data={{ user.email }}&hex=000000" 
+             alt="User QR Code" 
+             class="w-32 h-32 rounded-lg shadow-md border-2 border-indigo-200">
+        <span class="text-xs text-gray-500 mt-2 text-center">Attendance QR</span>
     </div>
 
+</div>
+
+<!-- Quick Actions Section -->
+<div class="mt-6 bg-white rounded-lg shadow-sm p-6">
+    <h4 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h4>
+    <div class="grid md:grid-cols-2 gap-3">
+        <a href="/attendance/my" class="flex items-center px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition transform hover:scale-105">
+            <span class="text-lg mr-2">📊</span>
+            View My Attendance
+        </a>
+        <a href="/events" class="flex items-center px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition transform hover:scale-105">
+            <span class="text-lg mr-2">🎯</span>
+            Browse Events
+        </a>
+    </div>
 </div>

@@ -1,8 +1,7 @@
 from django.db import models
 from django.conf import settings
 import uuid
-
-User = settings.AUTH_USER_MODEL
+from accounts.models import User
 
 class Event(models.Model):
 
@@ -31,6 +30,8 @@ class Event(models.Model):
     )
 
     location = models.CharField(max_length=255)
+
+    date = models.DateField()
 
     startTime = models.DateTimeField()
     endTime = models.DateTimeField()

@@ -95,6 +95,8 @@ class PasswordResetView(View):
     :POST -> Processes the password reset request.
     """
     def get(self, request):
+        if request.user.is_authenticated:
+            return redirect("dashboard")
         form = PasswordResetForm()
         return render(request, "accounts/password_reset.html", {"form": form})
 
@@ -107,3 +109,23 @@ class PasswordResetView(View):
             return render(request, "accounts/password_reset_done.html")
         else:
             return render(request, "accounts/password_reset.html", {"form": form})
+        
+class MyProfileView(LoginRequiredMixin, View):
+    """
+    Displays the user's profile information.
+    """
+    def get(self, request):
+        return render(request, "accounts/my_profile.html")
+    
+    # def post(self, request):
+    #     action = request.POST.get("action")
+    #     if action=="changeAccountType":
+    #         request.user.role = "organizer"
+    #         request.user.save()
+    #         return redirect("my_profile")
+    #     if action=="revertAccountType":
+    #         request.user.role = "participant"
+    #         request.user.save()
+    #         return redirect("my_profile")
+    #     else:
+    #         return redirect("my_profile")

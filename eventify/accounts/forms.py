@@ -9,6 +9,18 @@ class RegistrationForm(forms.ModelForm):
         widget=forms.PasswordInput()
     )
 
+    def clean_cityName(self):
+        city = self.cleaned_data.get("cityName")
+        if city:
+            city = city.lower().replace(" ", "_")
+        return city
+
+    def clean_countryName(self):
+        country = self.cleaned_data.get("countryName")
+        if country:
+            country = country.lower().replace(" ", "_")
+        return country
+
     class Meta:
         model = User
         fields = [
@@ -16,6 +28,8 @@ class RegistrationForm(forms.ModelForm):
             "username",
             "email",
             "phone_number",
+            "cityName",
+            "countryName"
         ]
 
     def clean(self):
@@ -31,6 +45,8 @@ class RegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        user.cityName = self.cleaned_data.get("cityName")
+        user.countryName = self.cleaned_data.get("countryName")
         if commit:
             user.save()
         return user

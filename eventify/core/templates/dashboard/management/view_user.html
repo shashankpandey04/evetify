@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<section class="pt-32 pb-24">
+<section class="pb-24">
 
 <div class="max-w-3xl mx-auto px-6">
 
@@ -23,13 +23,31 @@
 
         </div>
 
-        <!-- ACTIONS -->
         <div class="mt-8 flex gap-3">
-
-            <button onclick="changeRole('organizer')"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
-                Make Organizer
-            </button>
+            {% if user.role == "participant" %}
+                <button onclick="changeRole('volunteer')"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                    Make Volunteer
+                </button>
+            {% elif user.role == "volunteer" %}
+                <button onclick="changeRole('participant')"
+                    class="px-4 py-2 bg-gray-600 text-white rounded-lg">
+                    Revoke Volunteer
+                </button>
+                <button onclick="changeRole('organizer')"
+                    class="px-4 py-2 bg-yellow-600 text-white rounded-lg">
+                    Make Organizer
+                </button>
+            {% else %}
+                <button onclick="changeRole('volunteer')"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg">
+                    Revoke Organizer
+                </button>
+                <button onclick="changeRole('participant')"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                    Make Participant
+                </button>
+            {% endif %}
 
             <button onclick="deactivateUser()"
                 class="px-4 py-2 border border-red-300 text-red-600 rounded-lg">

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Event | Eventify{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-10">
+    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Create New Event</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="space-y-4">
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                <input type="text" name="title" id="title" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" id="description" rows="3" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            </div>
+            <div>
+                <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                <input type="date" name="date" id="date" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="startTime" class="block text-sm font-medium text-gray-700">Start Time</label>
+                <input type="datetime-local" name="startTime" id="startTime" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="endTime" class="block text-sm font-medium text-gray-700">End Time</label>
+                <input type="datetime-local" name="endTime" id="endTime" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="registrationDeadline" class="block text-sm font-medium text-gray-700">Registration Deadline</label>
+                <input type="datetime-local" name="registrationDeadline" id="registrationDeadline" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" name="location" id="location" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="capacity" class="block text-sm font-medium text-gray-700">Capacity</label>
+                <input type="number" name="capacity" id="capacity" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" id="status" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="expired">Expired</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Enable Attendance</label>
+                <input type="checkbox" name="attendanceEnabled" id="attendanceEnabled" class="mt-1">
+            </div>
+            <div>
+                <label for="volunteers" class="block text-sm font-medium text-gray-700">Volunteers</label>
+                <select name="volunteers" id="volunteers" multiple class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    {% for volunteer in allVolunteers %}
+                        <option value="{{ volunteer.id }}">{{ volunteer.username }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-gray-400 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple volunteers.</p>
+            </div>
+        </div>
+        <button type="submit" class="mt-6 w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">Create Event</button>
+    </form>
+</div>
+{% endblock %}
