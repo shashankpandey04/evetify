@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Attendance
@@ -28,21 +29,54 @@ class AttendanceManagerView(LoginRequiredMixin, View):
         email = request.POST.get("email")
         action = request.POST.get("action")
         eventID = eventID or request.POST.get("eventID")
+        event = Event.objects.get(id=eventID)
+        if not event:
+            return JsonResponse(
+                {
+                    "error": "Event not found"
+                },
+                status=404
+            )
+        try:
+            user = User.objects.get(Q(email__iexact=email) | Q(username__iexact=email) | Q(uuid__iexact=email))
+        except User.DoesNotExist:
+            return JsonResponse(
+                {
+                    "error": "User not found"
+                },
+                status=404
+            )
 
         if action == 'checkin':
             Attendance.objects.create(
-                event=Event.objects.get(eventID=eventID),
-                user = User.objects.get(email=email),
-                checkedIn = True,
-                checkedInBy = request.user
+                event=event,
+                user=user,
+                checkedIn=True,
+                checkedInBy=request.user
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": f"Checked in user {user.email}"
+                },
+                status=200
             )
         elif action == 'checkout':
-            attendance = Attendance.objects.get(event=Event.objects.get(eventID=eventID), user=User.objects.get(email=email))
+            try:
+                attendance = Attendance.objects.get(event=event, user=user)
+            except Attendance.DoesNotExist:
+                return JsonResponse(
+                    {
+                        "error": "Attendance record not found"
+                    },
+                    status=404
+                )
             attendance.checkedOut = True
             attendance.checkedOutBy = request.user
             attendance.save()
+            return JsonResponse({"success": True})
 
-        return JsonResponse({"success": True})
+        return JsonResponse({"error": "Invalid action"}, status=400)
 
 class ViewEventAttendanceView(LoginRequiredMixin, View):
     def get(self, request, eventID):
@@ -79,7 +113,8 @@ class ViewEventAttendanceViewAPI(LoginRequiredMixin, View):
                     "error": "You are not authorized to view attendance for this event."
                 }
             )
-        event = Event.objects.get(eventID=eventID)
+        event = Event.objects.get(id=eventID)
+       
         attendances = Attendance.objects.filter(event=event)
         data = {
             "attendances": [

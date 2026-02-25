@@ -35,24 +35,20 @@
       </div>
 
       <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        <h2 class="text-lg font-semibold mb-4">QR Scanner (Dummy)</h2>
-        <div class="border-2 border-dashed border-gray-200 rounded-lg h-56 flex items-center justify-center mb-4">
-          <div class="text-center text-gray-400">
-            <i class="fa-solid fa-camera-retro text-4xl mb-3"></i>
-            <div class="text-sm">Camera preview (dummy)</div>
-          </div>
-        </div>
-        <p class="text-sm text-gray-600 mb-4">Press "Scan QR" to simulate scanning a QR that contains <code>{"email":"user@example.com","eventID":"<uuid>"}</code>.</p>
+        <h2 class="text-lg font-semibold mb-4">QR Scanner</h2>
+        <div id="qr-reader" class="border-2 border-dashed border-gray-200 rounded-lg h-56 mb-4"></div>
         <div class="flex gap-3">
           <button id="scan-qr" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold">Scan QR</button>
-          <button id="paste-qr" class="px-4 py-2 bg-gray-100 rounded-lg">Paste QR payload</button>
+          <button id="stop-qr" class="px-4 py-2 bg-red-500 text-white rounded-lg">Stop Scanner</button>
         </div>
       </div>
     </div>
   </div>
 </section>
+  <!-- html5-qrcode library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-<script>
+  <script>
 function getCSRFToken(){
   return document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1];
 }
@@ -85,20 +81,55 @@ function getCSRFToken(){
   });
 
   document.getElementById('scan-qr').addEventListener('click', ()=>{
-    const sampleEmail = prompt('Simulate scanned email (example: user@example.com)');
-    if(!sampleEmail) return;
-    // use page eventID from template
-    document.getElementById('email').value = sampleEmail;
-    doPost({email: sampleEmail, action: 'checkin', eventID: pageEventID});
+    // Start the camera scanner and listen for a single scan
+    if(window._ev_qr_scanner) return; // already running
+    const qrRegionId = 'qr-reader';
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    const onScanSuccess = (decodedText, decodedResult) => {
+      // stop scanner
+      try{
+        window._ev_qr_scanner.clear().then(()=>{ window._ev_qr_scanner = null; });
+      }catch(e){ window._ev_qr_scanner = null; }
+
+      // try parse JSON payload
+      let payload = {};
+      try{ payload = JSON.parse(decodedText); }catch(e){ payload.email = decodedText; }
+
+      const email = payload.email || document.getElementById('email').value.trim();
+      const eventVal = payload.eventID || payload.eventID || pageEventID;
+      if(email) document.getElementById('email').value = email;
+      if(eventVal) document.getElementById('eventID').value = eventVal;
+
+      // ask volunteer action
+      const isCheckin = confirm('QR scanned for ' + (email||'user') + '.\n\nPress OK to mark CHECK IN, Cancel to mark CHECK OUT.');
+      const action = isCheckin ? 'checkin' : 'checkout';
+      doPost({ email: email, action: action, eventID: eventVal });
+    };
+
+    const onScanError = (errorMessage) => {
+      // ignore intermittent scan errors
+    };
+
+    // create scanner instance and start
+    try{
+      const scanner = new Html5Qrcode(qrRegionId);
+      window._ev_qr_scanner = scanner;
+      scanner.start({ facingMode: "environment" }, config, onScanSuccess, onScanError).catch(err=>{
+        console.error('QR start failed', err);
+        document.getElementById('attendance-status').innerHTML = `<span class='text-red-600'>Camera start failed: ${err}</span>`;
+        window._ev_qr_scanner = null;
+      });
+    }catch(e){
+      console.error(e);
+      document.getElementById('attendance-status').innerHTML = `<span class='text-red-600'>Scanner init error</span>`;
+      window._ev_qr_scanner = null;
+    }
   });
 
-  document.getElementById('paste-qr').addEventListener('click', ()=>{
-    const payload = prompt('Paste scanned JSON payload');
-    try{
-      const obj = JSON.parse(payload || '{}');
-      if(obj.email) document.getElementById('email').value = obj.email;
-      if(obj.eventID) document.getElementById('eventID').value = obj.eventID; else document.getElementById('eventID').value = pageEventID;
-    }catch(e){ alert('Invalid JSON'); }
+  document.getElementById('stop-qr').addEventListener('click', ()=>{
+    if(window._ev_qr_scanner){
+      window._ev_qr_scanner.clear().then(()=>{ window._ev_qr_scanner = null; document.getElementById('attendance-status').innerHTML = '<span class="text-gray-600">Scanner stopped</span>'; }).catch(()=>{ window._ev_qr_scanner = null; });
+    }
   });
 });
 </script>
