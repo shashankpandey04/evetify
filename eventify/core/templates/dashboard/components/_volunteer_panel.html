@@ -1,39 +1,34 @@
 <section class="mb-14">
-
-<h2 class="text-2xl font-semibold text-gray-900 mb-6">
-    Volunteer Workspace
-</h2>
-
-<div class="grid md:grid-cols-2 gap-6">
-
-{% for event in user_events %}
-<a href="/attendance/manager/{{ event.id }}"
-   class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-
-    <div class="flex justify-between items-start">
+    <div class="flex items-center justify-between mb-6">
         <div>
-            <h3 class="font-semibold text-gray-900">
-                {{ event.title }}
-            </h3>
-            <p class="text-sm text-gray-500 mt-1">
-                {{ event.date|date:'M d, Y' }}
-            </p>
+            <h2 class="text-2xl font-semibold text-gray-900">Volunteer Workspace</h2>
+            <p class="text-sm text-gray-500 mt-1">Manage your assigned events and take attendance quickly.</p>
         </div>
-
-        <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-            {{ event.status }}
-        </span>
+        <div>
+            <a href="{% url 'my_attendance' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
+                <i class="fa-solid fa-list-check"></i>
+                My Attendance
+            </a>
+        </div>
     </div>
 
-    <div class="mt-6 text-green-600 font-semibold text-sm">
-        Take Attendance →
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for event in user_events %}
+        <article class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+            <div>
+                <h3 class="font-semibold text-gray-900 text-lg">{{ event.title }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ event.date|date:'M d, Y' }} • {{ event.location }}</p>
+                <p class="text-xs text-gray-400 mt-2">{{ event.cityName }}{% if event.countryName %}, {{ event.countryName }}{% endif %}</p>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+                <a href="/attendance/manager/{{ event.id }}" class="text-sm text-white bg-emerald-600 px-3 py-2 rounded-full font-medium hover:bg-emerald-700 transition">Take Attendance</a>
+                <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 capitalize">{{ event.status }}</span>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-6 shadow-sm text-gray-500">No assigned events yet.</div>
+        {% endfor %}
     </div>
-
-</a>
-{% empty %}
-<p class="text-gray-400">No assigned events yet.</p>
-{% endfor %}
-
-</div>
 
 </section>
