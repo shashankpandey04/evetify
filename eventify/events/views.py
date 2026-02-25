@@ -16,11 +16,16 @@ class EventListView(View):
 
 class ManageEvents(LoginRequiredMixin, View):
     def get(self, request):
+        if request.user.role != "organizer":
+            return redirect("event_list")
         events = Event.objects.filter(organizer=request.user)
         return render(request, "events/manage.html", {"events": events})
     
 class EventRegistrationsView(LoginRequiredMixin, View):
     def get(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+        if request.user != event.organizer:
+            return redirect("event_list")
         return render(request, "events/registrations.html", {"event_id":event_id})
 
 class EventEditView(LoginRequiredMixin, View):
@@ -75,6 +80,8 @@ class EventCreateView(LoginRequiredMixin, View):
         return render(request, "events/create.html", context)
 
     def post(self, request):
+        if request.user.role != "organizer":
+            return redirect("event_list")
         title = request.POST.get("title")
         description = request.POST.get("description")
         location = request.POST.get("location")
@@ -143,11 +150,15 @@ class DeleteEventView(View):
 class EventAnalyticsView(LoginRequiredMixin, View):
     def get(self, request, event_id):
         event = Event.objects.get(id=event_id)
+        if request.user != event.organizer:
+            return redirect("event_list")
         return render(request, "events/analytics.html", {"event": event})
 
 class EventAnalyticsAPI(LoginRequiredMixin, View):
     def get(self, request, event_id):
         event = Event.objects.get(id=event_id)
+        if request.user != event.organizer:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
         registrations = RegisterEvent.objects.filter(event=event)
         users = [reg.user for reg in registrations]
 
