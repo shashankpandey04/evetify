@@ -40,6 +40,9 @@ class EventEditView(LoginRequiredMixin, View):
             return HttpResponseForbidden("You are not authorized to edit this event.")
         event.title = request.POST.get("title")
         event.description = request.POST.get("description")
+        event.location = request.POST.get("location")
+        event.cityName = request.POST.get("cityName")
+        event.countryName = request.POST.get("countryName")
         event.date = request.POST.get("date")
         event.startTime = request.POST.get("startTime")
         event.endTime = request.POST.get("endTime")
@@ -75,6 +78,8 @@ class EventCreateView(LoginRequiredMixin, View):
         title = request.POST.get("title")
         description = request.POST.get("description")
         location = request.POST.get("location")
+        cityName = request.POST.get("cityName")
+        countryName = request.POST.get("countryName")
         startTime = request.POST.get("startTime")
         endTime = request.POST.get("endTime")
         registrationDeadline = request.POST.get("registrationDeadline")
@@ -93,6 +98,8 @@ class EventCreateView(LoginRequiredMixin, View):
             endTime=endTime,
             registrationDeadline=registrationDeadline,
             location=location,
+            cityName=cityName or "",
+            countryName=countryName or "",
             capacity=capacity,
             status=status,
             attendanceEnabled=attendanceEnabled,
