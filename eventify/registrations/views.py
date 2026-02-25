@@ -3,9 +3,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from .models import RegisterEvent
 from events.models import Event
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 
-class RegisterEventView(LoginRequiredMixin, View):
+class RegisterEventViewAPI(LoginRequiredMixin, View):
     def post(self, request):
         event_id = request.POST.get('eventID')
         user = request.user
@@ -20,7 +20,7 @@ class MyRegistrationsView(LoginRequiredMixin, View):
             'registrations': registrations
         })
     
-class UnRegisterEventView(LoginRequiredMixin, View):
+class UnRegisterEventViewAPI(LoginRequiredMixin, View):
     def post(self, request):
         event_id = request.POST.get('eventID')
         user = request.user
@@ -31,7 +31,7 @@ class UnRegisterEventView(LoginRequiredMixin, View):
         ).delete()
         return JsonResponse({"success": True})
 
-class IsRegisteredForEvent(LoginRequiredMixin, View):
+class IsRegisteredForEventAPI(LoginRequiredMixin, View):
     def get(self, request):
         event_id = request.GET.get('eventID')
         user = request.user
@@ -41,3 +41,26 @@ class IsRegisteredForEvent(LoginRequiredMixin, View):
             event=event
         ).exists()
         return JsonResponse({'is_registered': is_registered})
+    
+class EventRegistrationsAPI(LoginRequiredMixin, View):
+    def get(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+        if request.user != event.organizer:
+            return JsonResponse(
+                {
+                    "error": "You are not authorized to view registrations for this event."
+                }
+            )
+        registrations = RegisterEvent.objects.filter(event=event).select_related("user")
+        return JsonResponse(
+            {
+                "registrations": [
+                    {
+                        "user": registration.user.username,
+                        "email": registration.user.email,
+                        "registeredAt": registration.registeredAt
+                    }
+                    for registration in registrations
+                ]
+            }
+        )

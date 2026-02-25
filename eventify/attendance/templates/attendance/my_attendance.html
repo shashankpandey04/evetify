@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Attendance | Eventify{% endblock %}
+
+{% block content %}
+<section>
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold">My Attendance</h1>
+      <p class="text-gray-600">Your check-ins and check-outs across events.</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+      <div id="my-loading" class="py-12 text-center text-gray-500">Loading…</div>
+      <div id="my-error" class="hidden py-8 text-center text-red-600"></div>
+
+      <div class="overflow-x-auto">
+        <table id="my-table" class="w-full text-sm hidden">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr class="text-gray-700">
+              <th class="px-6 py-3 text-left font-semibold">Event</th>
+              <th class="px-6 py-3 text-left font-semibold">Event ID</th>
+              <th class="px-6 py-3 text-left font-semibold">Checked In</th>
+              <th class="px-6 py-3 text-left font-semibold">Checked Out</th>
+            </tr>
+          </thead>
+          <tbody id="my-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const loading = document.getElementById('my-loading');
+  const error = document.getElementById('my-error');
+  const table = document.getElementById('my-table');
+  const body = document.getElementById('my-body');
+
+  fetch('/attendance/api/v1/my/', { credentials: 'same-origin' })
+    .then(r=>r.json())
+    .then(data=>{
+      loading.classList.add('hidden');
+      const items = data.attendances || [];
+      if(!items.length){ error.classList.remove('hidden'); error.textContent = 'No attendance records.'; return; }
+      table.classList.remove('hidden');
+      items.forEach(a=>{
+        const tr = document.createElement('tr');
+        tr.className = 'border-b hover:bg-gray-50';
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-medium text-gray-900">${a.event}</td>
+          <td class="px-6 py-4">${a.eventID}</td>
+          <td class="px-6 py-4">${a.checkedIn ? (a.checkedInAt || 'Yes') : 'No'}</td>
+          <td class="px-6 py-4">${a.checkedOut ? (a.checkedOutAt || 'Yes') : 'No'}</td>
+        `;
+        body.appendChild(tr);
+      });
+    })
+    .catch(e=>{ loading.classList.add('hidden'); error.classList.remove('hidden'); error.textContent = 'Failed to load.'; console.error(e); });
+});
+</script>
+
+{% endblock %}

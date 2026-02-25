@@ -1,27 +1,39 @@
-<section class="mt-16">
+<section class="mb-14">
 
-    <h2 class="text-2xl font-semibold text-gray-900 mb-6">
-        Volunteer Overview
-    </h2>
+<h2 class="text-2xl font-semibold text-gray-900 mb-6">
+    Volunteer Workspace
+</h2>
 
-    <div class="grid md:grid-cols-2 gap-6">
+<div class="grid md:grid-cols-2 gap-6">
 
-        <div class="stat-card">
-            <p>Completed Check-ins</p>
-            <h3>{{ stats.total_attendance }}</h3>
-            <span class="text-xs text-gray-400">
-                Events you helped complete
-            </span>
+{% for event in user_events %}
+<a href="/attendance/manager/{{ event.id }}"
+   class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+
+    <div class="flex justify-between items-start">
+        <div>
+            <h3 class="font-semibold text-gray-900">
+                {{ event.title }}
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">
+                {{ event.date|date:'M d, Y' }}
+            </p>
         </div>
 
-        <div class="stat-card">
-            <p>Certificates Processed</p>
-            <h3>{{ stats.certificates_issued }}</h3>
-            <span class="text-xs text-gray-400">
-                Related participation rewards
-            </span>
-        </div>
-
+        <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+            {{ event.status }}
+        </span>
     </div>
+
+    <div class="mt-6 text-green-600 font-semibold text-sm">
+        Take Attendance →
+    </div>
+
+</a>
+{% empty %}
+<p class="text-gray-400">No assigned events yet.</p>
+{% endfor %}
+
+</div>
 
 </section>

@@ -11,10 +11,14 @@ class MyAttendanceView(LoginRequiredMixin, View):
         return render(request, "attendance/my_attendance.html")
 
 class AttendanceManagerView(LoginRequiredMixin, View):
-    def get(self, request):
-        return render(request, "attendance/manager.html")
+    def get(self, request, eventID):
+        if request.user.role not in ["organizer", "volunteer"]:
+            return render(request, "unauthorized.html")
+        return render(request, "attendance/manager.html", {
+            "eventID": eventID
+        })
     
-    def post(self, request):
+    def post(self, request, eventID=None):
         if request.user.role not in ["organizer", "volunteer"]:
             return JsonResponse(
                 {
@@ -23,7 +27,7 @@ class AttendanceManagerView(LoginRequiredMixin, View):
             )
         email = request.POST.get("email")
         action = request.POST.get("action")
-        eventID = request.POST.get("eventID")
+        eventID = eventID or request.POST.get("eventID")
 
         if action == 'checkin':
             Attendance.objects.create(
@@ -38,11 +42,55 @@ class AttendanceManagerView(LoginRequiredMixin, View):
             attendance.checkedOutBy = request.user
             attendance.save()
 
+        return JsonResponse({"success": True})
+
 class ViewEventAttendanceView(LoginRequiredMixin, View):
     def get(self, request, eventID):
+        if request.user.role not in ["organizer", "volunteer"]:
+            return render(request, "unauthorized.html")
+        return render(request, "attendance/view_event_attendance.html", {
+            "eventID": eventID
+        })
+
+
+class MyAttendanceAPI(LoginRequiredMixin, View):
+    def get(self, request):
+        attendances = Attendance.objects.filter(user=request.user).select_related('event')
+        data = {
+            "attendances": [
+                {
+                    "event": a.event.title,
+                    "eventID": str(a.event.eventID),
+                    "checkedIn": a.checkedIn,
+                    "checkedOut": a.checkedOut,
+                    "checkedInAt": a.checkedInAt.isoformat() if getattr(a, 'checkedInAt', None) else None,
+                    "checkedOutAt": a.checkedOutAt.isoformat() if getattr(a, 'checkedOutAt', None) else None,
+                }
+                for a in attendances
+            ]
+        }
+        return JsonResponse(data)
+
+class ViewEventAttendanceViewAPI(LoginRequiredMixin, View):
+    def get(self, request, eventID):
+        if request.user.role not in ["organizer", "volunteer"]:
+            return JsonResponse(
+                {
+                    "error": "You are not authorized to view attendance for this event."
+                }
+            )
         event = Event.objects.get(eventID=eventID)
         attendances = Attendance.objects.filter(event=event)
-        return render(request, "attendance/view_event_attendance.html", {
-            "event": event,
-            "attendances": attendances
-        })
+        data = {
+            "attendances": [
+                {
+                    "user": attendance.user.email,
+                    "checkedIn": attendance.checkedIn,
+                    "checkedOut": attendance.checkedOut,
+                    "checkedInBy": attendance.checkedInBy.email if attendance.checkedInBy else None,
+                    "checkedOutBy": attendance.checkedOutBy.email if attendance.checkedOutBy else None
+                }
+                for attendance in attendances
+            ]
+        }
+        return JsonResponse(data)

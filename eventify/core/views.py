@@ -53,6 +53,11 @@ class DashboardView(LoginRequiredMixin, View):
                 "recent_users": recent_users,
                 "stats": stats
             })
+        
+        user_events = Event.objects.filter(
+            Q(organizer=request.user) | Q(volunteers=request.user)
+        ).distinct()
+        context["user_events"] = user_events
 
         return render(request, "dashboard/dashboard.html", context)
 

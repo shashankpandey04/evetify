@@ -18,25 +18,18 @@ class ManageEvents(LoginRequiredMixin, View):
     def get(self, request):
         events = Event.objects.filter(organizer=request.user)
         return render(request, "events/manage.html", {"events": events})
-
+    
 class EventRegistrationsView(LoginRequiredMixin, View):
     def get(self, request, event_id):
-        if request.user != event.organizer:
-            return HttpResponseForbidden("You are not authorized to view this page.")
-        event = Event.objects.get(id=event_id)
-        registrations = RegisterEvent.objects.filter(event=event).select_related("user")
-        return render(request, "events/registrations.html", {
-            "event": event,
-            "registrations": registrations
-        })
+        return render(request, "events/registrations.html", {"event_id":event_id})
 
-class EventAnalyticsView(LoginRequiredMixin, View):
+class EventEditView(LoginRequiredMixin, View):
     def get(self, request, event_id):
         event = Event.objects.get(id=event_id)
         if request.user != event.organizer:
             return HttpResponseForbidden("You are not authorized to view this page.")
         all_volunteers = User.objects.filter(role="volunteer")
-        return render(request, "events/analytics.html", {
+        return render(request, "events/edit.html", {
             "event": event,
             "all_volunteers": all_volunteers,
         })
@@ -59,7 +52,7 @@ class EventAnalyticsView(LoginRequiredMixin, View):
         event.save()
         all_volunteers = User.objects.filter(role="volunteer")
         registrations = RegisterEvent.objects.filter(event=event).select_related("user")
-        return render(request, "events/analytics.html", {
+        return render(request, "events/edit.html", {
             "event": event,
             "all_volunteers": all_volunteers,
             "registrations": registrations,
@@ -113,3 +106,91 @@ class ViewEventDetails(View):
     def get(self, request, event_id):
         event = Event.objects.get(id=event_id)
         return render(request, "events/detail.html", {"event": event, "user": request.user})
+
+class DeleteEventView(View):
+    def post(self, request):
+        eventID = request.POST.get("eventID")
+        try:
+            event = Event.objects.get(
+                id=eventID,
+                organizer=request.user
+            )
+        except Event.DoesNotExist:
+            return JsonResponse({"message": "Event not found."}, status=404)
+        registrations = RegisterEvent.objects.filter(event=event)
+        if registrations.exists():
+            return JsonResponse(
+                {
+                    "message": "Can't delete events with active registrations!",
+                },
+                status=400
+            )
+        event.delete()
+        return JsonResponse(
+                {
+                    "message": "Event deleted successfully."
+                },
+                status=200
+            )
+
+class EventAnalyticsView(LoginRequiredMixin, View):
+    def get(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+        return render(request, "events/analytics.html", {"event": event})
+
+class EventAnalyticsAPI(LoginRequiredMixin, View):
+    def get(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+        registrations = RegisterEvent.objects.filter(event=event)
+        users = [reg.user for reg in registrations]
+
+        city_host = event.cityName.strip().lower()
+        city_counts = {}
+        country_counts = {}
+        gender_counts = {"male": 0, "female": 0, "other": 0}
+        age_groups = {"under_18": 0, "18_25": 0, "26_35": 0, "36_50": 0, "over_50": 0}
+        from datetime import date
+
+        for user in users:
+            city = (user.cityName or '').strip().lower()
+            country = (user.countryName or '').strip().lower()
+            city_counts[city] = city_counts.get(city, 0) + 1
+            country_counts[country] = country_counts.get(country, 0) + 1
+            # Gender (if available)
+            gender = getattr(user, 'gender', None)
+            if gender:
+                gender_counts[gender.lower()] = gender_counts.get(gender.lower(), 0) + 1
+            # Age group (if available)
+            dob = getattr(user, 'date_of_birth', None)
+            if dob:
+                today = date.today()
+                age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                if age < 18:
+                    age_groups["under_18"] += 1
+                elif age <= 25:
+                    age_groups["18_25"] += 1
+                elif age <= 35:
+                    age_groups["26_35"] += 1
+                elif age <= 50:
+                    age_groups["36_50"] += 1
+                else:
+                    age_groups["over_50"] += 1
+
+        same_city = city_counts.get(city_host, 0)
+        diff_city = sum(v for k, v in city_counts.items() if k != city_host)
+
+        analytics = {
+            "event": event.title,
+            "event_city": event.cityName,
+            "event_country": event.countryName,
+            "total_registrations": len(users),
+            "same_city_count": same_city,
+            "diff_city_count": diff_city,
+            "city_distribution": city_counts,
+            "country_distribution": country_counts,
+            "gender_distribution": gender_counts,
+            "age_groups": age_groups,
+        }
+        return JsonResponse(analytics)
+        
+        

@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+from events.models import Event
+from registrations.models import RegisterEvent
 
 class LoginView(View):
 
@@ -111,21 +114,64 @@ class PasswordResetView(View):
             return render(request, "accounts/password_reset.html", {"form": form})
         
 class MyProfileView(LoginRequiredMixin, View):
-    """
-    Displays the user's profile information.
-    """
     def get(self, request):
-        return render(request, "accounts/my_profile.html")
-    
-    # def post(self, request):
-    #     action = request.POST.get("action")
-    #     if action=="changeAccountType":
-    #         request.user.role = "organizer"
-    #         request.user.save()
-    #         return redirect("my_profile")
-    #     if action=="revertAccountType":
-    #         request.user.role = "participant"
-    #         request.user.save()
-    #         return redirect("my_profile")
-    #     else:
-    #         return redirect("my_profile")
+        user = request.user
+        context = {
+            "registered_events": RegisterEvent.objects.filter(user=request.user),
+            "organized_events": Event.objects.filter(organizer=user),
+            "volunteer_events": Event.objects.filter(volunteers=user),
+        }
+        return render(request, "accounts/my_profile.html", context)
+
+    def post(self, request):
+        action = request.POST.get("action")
+        user = request.user
+
+        if action == "changeAccountType":
+            new_role = request.POST.get("role")
+            if user.role == "organizer" and Event.objects.filter(organizer=user).exists():
+                return JsonResponse({
+                    "message": "Cannot change account type while you are organizer of any event.",
+                    "role": user.role
+                }, status=403)
+            valid_roles = ["organizer", "volunteer", "participant"]
+            if new_role in valid_roles:
+                user.role = new_role
+                user.save()
+                return JsonResponse({
+                    "message": f"Account type changed to {new_role}",
+                    "role": user.role
+                })
+            else:
+                return JsonResponse({
+                    "message": "Invalid action or role",
+                    "role": user.role
+                }, status=400)
+
+        elif action == "editProfile":
+            # Update editable fields
+            fields = [
+                "full_name", "username", "email", "phone_number",
+                "cityName", "countryName", "gender", "organization", "bio"
+            ]
+            for field in fields:
+                value = request.POST.get(field)
+                if value is not None:
+                    setattr(user, field, value)
+
+            dob = request.POST.get("date_of_birth")
+            if dob:
+                try:
+                    from datetime import datetime
+                    user.date_of_birth = datetime.strptime(dob, "%Y-%m-%d").date()
+                except Exception:
+                    pass
+            user.save()
+            return JsonResponse({
+                "message": "Profile updated successfully!"
+            })
+
+        else:
+            return JsonResponse({
+                "message": "Invalid action"
+            }, status=400)

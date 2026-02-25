@@ -4,48 +4,95 @@
 {% block title %}Events{% endblock %}
 
 {% block content %}
-<section class="py-6">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="mb-16 text-center">
-            <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Discover Events</h1>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Find and register for amazing events. Connect with organizers and volunteers.</p>
-        </div>
-        
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for event in events %}
-            <div class="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-indigo-300 transition duration-300 flex flex-col">
-                <div class="relative p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-indigo-600 transition">{{ event.title }}</h3>
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 capitalize">{{ event.status }}</span>
-                </div>
-                <div class="flex-1 p-6 space-y-4">
-                    <div class="flex items-start gap-3">
-                        <i class="fa-solid fa-calendar-days text-indigo-500 mt-1 flex-shrink-0"></i>
-                        <div class="text-sm text-gray-700">
-                            <div class="font-semibold">{{ event.date|date:'M d, Y' }}</div>
-                            <div class="text-gray-600">{{ event.startTime|date:'H:i' }} - {{ event.endTime|date:'H:i' }}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start gap-3">
-                        <i class="fa-solid fa-location-dot text-indigo-500 mt-1 flex-shrink-0"></i>
-                        <div class="text-sm text-gray-700 font-medium">{{ event.location }}</div>
-                    </div>
-                    <p class="text-sm text-gray-600 line-clamp-3">{{ event.description }}</p>
-                </div>
-                <div class="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
-                    <a href="/events/{{ event.id }}/" class="flex-1 px-4 py-2 bg-white border border-indigo-300 text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition text-center">Details</a>
-                    <button class="flex-1 register-btn px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition" data-event-id="{{ event.eventID }}" data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">Register</button>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-span-full text-center py-24">
-                <i class="fa-solid fa-inbox text-6xl text-gray-300 mb-4"></i>
-                <p class="text-xl text-gray-500">No events found. Check back soon!</p>
-            </div>
-            {% endfor %}
-        </div>
+<section class="py-10 bg-gray-50">
+<div class="max-w-7xl mx-auto px-6">
+
+    <!-- HEADER -->
+    <div class="mb-14">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+            Discover Events
+        </h1>
+        <p class="text-lg text-gray-600 max-w-2xl">
+            Explore workshops, sessions and experiences happening around you.
+        </p>
     </div>
+
+    <!-- EVENTS GRID -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+
+        {% for event in events %}
+        <div class="group flex flex-col">
+
+            <!-- CARD -->
+            <div class="bg-white rounded-3xl p-6 transition
+                        hover:shadow-2xl hover:-translate-y-1 duration-300">
+
+                <!-- STATUS -->
+                <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                    {{ event.status }}
+                </span>
+
+                <!-- TITLE -->
+                <h3 class="text-xl font-bold text-gray-900 mt-2 mb-3
+                           group-hover:text-indigo-600 transition line-clamp-2">
+                    {{ event.title }}
+                </h3>
+
+                <!-- META INFO -->
+                <div class="space-y-3 text-sm text-gray-600">
+
+                    <div class="flex items-center gap-3">
+                        <i class="fa-regular fa-calendar text-indigo-500"></i>
+                        <span>
+                            {{ event.date|date:'M d, Y' }}
+                            •
+                            {{ event.startTime|date:'H:i' }} – {{ event.endTime|date:'H:i' }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-location-dot text-indigo-500"></i>
+                        <span>
+                            {{ event.cityName }}, {{ event.countryName }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <p class="mt-4 text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                    {{ event.description }}
+                </p>
+
+                <div class="flex gap-3 mt-6">
+
+                    <a href="/events/{{ event.id }}/"
+                       class="flex-1 text-center py-4 rounded-lg border border-gray-300
+                              font-semibold text-gray-700 hover:border-indigo-400
+                              hover:text-indigo-600 transition">
+                        Details
+                    </a>
+
+                    <button
+                        class="flex-1 register-btn py-2.5 rounded-lg font-semibold
+                               bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                        data-event-id="{{ event.eventID }}"
+                        data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+                        Register
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-24">
+            <i class="fa-solid fa-calendar-xmark text-6xl text-gray-300 mb-4"></i>
+            <p class="text-xl text-gray-500">No events available right now.</p>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
 </section>
 
 <script>

@@ -30,6 +30,7 @@ class User(AbstractUser):
 
     cityName = models.CharField(max_length=60, blank=True)
     countryName = models.CharField(max_length=60, blank=True)
+    gender = models.CharField(max_length=20, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

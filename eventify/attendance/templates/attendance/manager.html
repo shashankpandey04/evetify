@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Attendance Manager | Eventify{% endblock %}
+
+{% block content %}
+<section>
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Attendance Manager</h1>
+      <p class="text-gray-600">Use this console to check people in/out. Only organizers and volunteers can perform actions.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold mb-4">Manual Check</h2>
+        <form id="attendance-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input id="email" name="email" type="email" required class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="participant@example.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Event ID</label>
+            <input id="eventID" name="eventID" type="text" readonly class="mt-1 block w-full rounded-lg border-gray-300 px-3 py-2 bg-gray-50" value="{{ eventID }}">
+            <input type="hidden" id="eventID-hidden" value="{{ eventID }}">
+          </div>
+
+          <div class="flex gap-3">
+            <button type="button" id="checkin-btn" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold">Check In</button>
+            <button type="button" id="checkout-btn" class="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold">Check Out</button>
+          </div>
+
+          <div id="attendance-status" class="text-sm mt-2"></div>
+        </form>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold mb-4">QR Scanner (Dummy)</h2>
+        <div class="border-2 border-dashed border-gray-200 rounded-lg h-56 flex items-center justify-center mb-4">
+          <div class="text-center text-gray-400">
+            <i class="fa-solid fa-camera-retro text-4xl mb-3"></i>
+            <div class="text-sm">Camera preview (dummy)</div>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">Press "Scan QR" to simulate scanning a QR that contains <code>{"email":"user@example.com","eventID":"<uuid>"}</code>.</p>
+        <div class="flex gap-3">
+          <button id="scan-qr" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold">Scan QR</button>
+          <button id="paste-qr" class="px-4 py-2 bg-gray-100 rounded-lg">Paste QR payload</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function getCSRFToken(){
+  return document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1];
+}
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+  const pageEventID = "{{ eventID }}";
+  const status = document.getElementById('attendance-status');
+  const doPost = (payload) => {
+      const postUrl = window.location.pathname || '/attendance/manager/';
+      fetch(postUrl, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded', 'X-CSRFToken': getCSRFToken()},
+      body: new URLSearchParams(payload)
+    }).then(r=>r.json()).then(d=>{
+      if(d.error) status.innerHTML = `<span class='text-red-600'>${d.error}</span>`;
+      else status.innerHTML = `<span class='text-green-600'>Success</span>`;
+    }).catch(e=>{ status.innerHTML = `<span class='text-red-600'>Request failed</span>`; console.error(e)});
+  };
+
+  document.getElementById('checkin-btn').addEventListener('click', ()=>{
+    const email = document.getElementById('email').value.trim();
+    if(!email || !pageEventID){ status.innerHTML = '<span class="text-red-600">Email and Event ID required</span>'; return; }
+    doPost({email, action:'checkin', eventID: pageEventID});
+  });
+
+  document.getElementById('checkout-btn').addEventListener('click', ()=>{
+    const email = document.getElementById('email').value.trim();
+    if(!email || !pageEventID){ status.innerHTML = '<span class="text-red-600">Email and Event ID required</span>'; return; }
+    doPost({email, action:'checkout', eventID: pageEventID});
+  });
+
+  document.getElementById('scan-qr').addEventListener('click', ()=>{
+    const sampleEmail = prompt('Simulate scanned email (example: user@example.com)');
+    if(!sampleEmail) return;
+    // use page eventID from template
+    document.getElementById('email').value = sampleEmail;
+    doPost({email: sampleEmail, action: 'checkin', eventID: pageEventID});
+  });
+
+  document.getElementById('paste-qr').addEventListener('click', ()=>{
+    const payload = prompt('Paste scanned JSON payload');
+    try{
+      const obj = JSON.parse(payload || '{}');
+      if(obj.email) document.getElementById('email').value = obj.email;
+      if(obj.eventID) document.getElementById('eventID').value = obj.eventID; else document.getElementById('eventID').value = pageEventID;
+    }catch(e){ alert('Invalid JSON'); }
+  });
+});
+</script>
+
+{% endblock %}

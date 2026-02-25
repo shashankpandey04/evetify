@@ -1,33 +1,356 @@
+
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}My Profile | Eventify{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-10">
-    <h2 class="text-2xl font-semibold text-gray-900 mb-6">My Profile</h2>
-    <div class="mb-8 flex items-center gap-6">
-        <div class="bg-indigo-100 rounded-full w-20 h-20 flex items-center justify-center text-3xl font-bold text-indigo-600">
+<section class="py-10 bg-gray-50">
+<div class="max-w-5xl mx-auto px-6">
+
+    <!-- ================= PROFILE HEADER ================= -->
+    <div class="flex items-center gap-6 mb-12">
+
+        <div class="w-24 h-24 rounded-full bg-indigo-100
+                    flex items-center justify-center
+                    text-4xl font-bold text-indigo-600">
             {{ user.username|slice:":1"|upper }}
         </div>
+
         <div>
-            <div class="text-lg font-semibold text-gray-900">{{ user.username }}</div>
-            <div class="text-sm text-gray-500">{{ user.email }}</div>
-            <div class="mt-2 text-xs text-gray-400">Role: {{ user.role|title }}</div>
+            <h1 class="text-3xl font-bold text-gray-900">
+                {{ user.username }}
+            </h1>
+
+            <p class="text-gray-600">{{ user.email }}</p>
+
+            <span id="role-badge"
+                  class="inline-block mt-2 px-3 py-1 rounded-full
+                         bg-indigo-100 text-indigo-700 text-sm font-semibold">
+                {{ user.role|title }}
+            </span>
         </div>
+
     </div>
-    <!-- <form method="post">
-        {% csrf_token %}
-        <div class="space-y-4">
-            {% if user.role == "participant" %}
-            <button name="action" value="changeAccountType" class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition">Become Organizer</button>
-            {% elif user.role == "organizer" %}
-            <button name="action" value="revertAccountType" class="w-full py-3 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition">Revert to Participant</button>
+
+
+    <!-- ================= ACCOUNT TYPE ================= -->
+    <div class="mb-12">
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+            Account Type
+        </h2>
+
+        <p class="text-sm text-gray-600 mb-5">
+            Choose how you want to use Eventify.
+        </p>
+
+        <form id="role-switch-form">
+            {% csrf_token %}
+
+            <div class="grid sm:grid-cols-[1fr_auto] gap-4">
+
+                <select name="role"
+                    id="role"
+                    class="flex-1 h-12 px-4 rounded-xl border-gray-300 bg-white text-gray-900 text-base font-medium shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                    <option value="organizer" {% if user.role == "organizer" %}selected{% endif %}>
+                        Organizer
+                    </option>
+
+                    <option value="volunteer" {% if user.role == "volunteer" %}selected{% endif %}>
+                        Volunteer
+                    </option>
+
+                    <option value="participant" {% if user.role == "participant" %}selected{% endif %}>
+                        Participant
+                    </option>
+
+                </select>
+
+                <button type="submit"
+                    id="role-submit"
+                    class="h-12 px-8 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition whitespace-nowrap">
+                    Update Role
+                </button>
+
+            </div>
+
+            <p id="role-message" class="text-sm mt-3 hidden"></p>
+        </form>
+    </div>
+
+    <!-- ================= PROFILE EDIT ================= -->
+    <div class="mb-12">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+            Edit Profile
+        </h2>
+        <form id="profile-edit-form">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="full_name" value="{{ user.full_name }}" class="w-full h-10 px-3 rounded border border-gray-300" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" name="username" value="{{ user.username }}" class="w-full h-10 px-3 rounded border border-gray-300" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" class="w-full h-10 px-3 rounded border border-gray-300" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="text" name="phone_number" value="{{ user.phone_number }}" class="w-full h-10 px-3 rounded border border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" name="cityName" value="{{ user.cityName }}" class="w-full h-10 px-3 rounded border border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input type="text" name="countryName" value="{{ user.countryName }}" class="w-full h-10 px-3 rounded border border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <select name="gender" class="w-full h-10 px-3 rounded border border-gray-300">
+                        <option value="" {% if not user.gender %}selected{% endif %}>Select Gender</option>
+                        <option value="male" {% if user.gender == "male" %}selected{% endif %}>Male</option>
+                        <option value="female" {% if user.gender == "female" %}selected{% endif %}>Female</option>
+                        <option value="other" {% if user.gender == "other" %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <input type="date" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d' }}" class="w-full h-10 px-3 rounded border border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                    <input type="text" name="organization" value="{{ user.organization }}" class="w-full h-10 px-3 rounded border border-gray-300">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <textarea name="bio" class="w-full h-20 px-3 rounded border border-gray-300">{{ user.bio }}</textarea>
+                </div>
+            </div>
+            <button type="submit" id="profile-edit-submit" class="mt-6 h-12 px-8 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">Save Changes</button>
+            <p id="profile-edit-message" class="text-sm mt-3 hidden"></p>
+        </form>
+    </div>
+
+
+    <!-- ================= ACTIVITY ================= -->
+    <div class="pt-10 border-t">
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-8">
+            My Activity
+        </h2>
+
+        <div class="space-y-10">
+
+            <!-- ORGANIZED EVENTS -->
+            {% if user.role == "organizer" %}
+            <div>
+                <h3 class="font-semibold text-gray-800 mb-4">
+                    Organized Events
+                </h3>
+
+                {% if organized_events %}
+                    <div class="space-y-4">
+                        {% for event in organized_events %}
+                        <a href="/events/{{ event.id }}/"
+                           class="block p-5 bg-white rounded-xl
+                                  hover:shadow-md transition">
+
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold text-gray-900">
+                                        {{ event.title }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        Capacity:
+                                        {{ event.capacity|default:"Unlimited" }}
+                                    </p>
+                                </div>
+
+                                <span class="text-green-600 text-sm font-medium">
+                                    Manage →
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-sm">
+                        You haven't organized any events yet.
+                    </p>
+                {% endif %}
+            </div>
             {% endif %}
+
+
+            <!-- VOLUNTEER EVENTS -->
+            {% if volunteer_events %}
+            <div>
+                <h3 class="font-semibold text-gray-800 mb-4">
+                    Volunteer Activity
+                </h3>
+
+                <div class="space-y-4">
+                    {% for event in volunteer_events %}
+                    <a href="/events/{{ event.id }}/"
+                       class="block p-5 bg-white rounded-xl
+                              hover:shadow-md transition">
+
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold text-gray-900">
+                                    {{ event.title }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    Volunteer
+                                </p>
+                            </div>
+
+                            <span class="text-indigo-600 text-sm font-medium">
+                                View →
+                            </span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
         </div>
-    </form> -->
-    <div class="mt-8">
-        <a href="/auth/change-password/" class="text-indigo-600 hover:underline font-medium">Change Password</a>
     </div>
+
+
+    <!-- ================= SECURITY ================= -->
+    <div class="pt-10 border-t mt-12">
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            Security
+        </h2>
+
+        <a href="/auth/change-password/"
+           class="inline-flex items-center gap-2 text-indigo-600
+                  hover:text-indigo-700 font-medium">
+            <i class="fa-solid fa-key"></i>
+            Change Password
+        </a>
+
+    </div>
+
 </div>
+</section>
+
+
+<!-- ================= ROLE SWITCH SCRIPT ================= -->
+<script>
+function getCSRFToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))?.split('=')[1];
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form = document.getElementById("role-switch-form");
+    const message = document.getElementById("role-message");
+    const button = document.getElementById("role-submit");
+    const select = document.getElementById("role");
+    const badge = document.getElementById("role-badge");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        button.disabled = true;
+        button.textContent = "Updating...";
+
+        const body = new URLSearchParams();
+        body.append("action", "changeAccountType");
+        body.append("role", select.value);
+
+        try {
+            const res = await fetch("", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body
+            });
+
+            const data = await res.json();
+
+            message.classList.remove("hidden");
+
+            if (res.ok) {
+                message.className = "text-green-600 text-sm mt-3";
+                message.textContent = data.message;
+
+                // update badge live
+                badge.textContent =
+                    data.role.charAt(0).toUpperCase() + data.role.slice(1);
+
+            } else {
+                message.className = "text-red-600 text-sm mt-3";
+                message.textContent = data.message;
+            }
+
+        } catch {
+            message.className = "text-red-600 text-sm mt-3";
+            message.textContent = "Something went wrong.";
+        }
+
+        button.disabled = false;
+        button.textContent = "Update Role";
+    });
+
+});
+</script>
+
+<!-- ================= PROFILE EDIT SCRIPT ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const profileForm = document.getElementById("profile-edit-form");
+    const profileMessage = document.getElementById("profile-edit-message");
+    const profileButton = document.getElementById("profile-edit-submit");
+
+    profileForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        profileButton.disabled = true;
+        profileButton.textContent = "Saving...";
+
+        const formData = new FormData(profileForm);
+        formData.append("action", "editProfile");
+
+        try {
+            const res = await fetch("", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: formData
+            });
+            const data = await res.json();
+            profileMessage.classList.remove("hidden");
+            if (res.ok) {
+                profileMessage.className = "text-green-600 text-sm mt-3";
+                profileMessage.textContent = data.message;
+            } else {
+                profileMessage.className = "text-red-600 text-sm mt-3";
+                profileMessage.textContent = data.message;
+            }
+        } catch {
+            profileMessage.className = "text-red-600 text-sm mt-3";
+            profileMessage.textContent = "Something went wrong.";
+        }
+        profileButton.disabled = false;
+        profileButton.textContent = "Save Changes";
+    });
+});
+</script>
+
 {% endblock %}

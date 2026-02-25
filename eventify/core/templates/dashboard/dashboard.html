@@ -2,45 +2,45 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<section class="py-10 bg-gray-50 min-h-screen">
+<div class="max-w-7xl mx-auto px-6">
 
-<section class="pb-24">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="mb-16 mt-4">
-            <h1 class="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Welcome back, 
-                <span class="text-lime-600 font-bold">
-                    {{ user.username }}
-                </span>
-            </h1>
-            <p class="text-lg text-gray-600">
-                Track your attendance, view upcoming events, and manage your profile.
-            </p>
-            <p class="text-sm text-gray-500">
-                Role: 
-                {% if user.role == "organizer" %}
-                    <span class="text-amber-600 font-semibold">Organizer</span>
-                {% elif user.role == "volunteer" %}
-                    <span class="text-fuchsia-600 font-semibold">Volunteer</span>
-                {% elif user.role == "participant" %}
-                    <span class="text-blue-600 font-semibold">Participant</span>
-                {% endif %}
-            </p>
+    <!-- HEADER -->
+    <div class="mb-12">
+        <h1 class="text-4xl font-bold text-gray-900">
+            Welcome back,
+            <span class="text-indigo-600">{{ user.username }}</span>
+        </h1>
+
+        <p class="text-gray-600 mt-2">
+            Here's an overview of your activity and upcoming events.
+        </p>
+
+        <div class="mt-4">
+            {% if user.role == "organizer" %}
+                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold">Organizer</span>
+            {% elif user.role == "volunteer" %}
+                <span class="px-3 py-1 rounded-full bg-fuchsia-100 text-fuchsia-700 text-sm font-semibold">Volunteer</span>
+            {% else %}
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">Participant</span>
+            {% endif %}
         </div>
-
-        {% if is_organizer %}
-            {% include "dashboard/components/_organizer_panel.html" %}
-        {% endif %}
-
-        {% if is_volunteer %}
-            {% include "dashboard/components/_stats.html" %}
-            {% include "dashboard/components/_volunteer_panel.html" %}
-        {% endif %}
-
-        {% if is_participant %}
-            {% include "dashboard/components/_stats.html" %}
-            {% include "dashboard/components/_participant_panel.html" %}
-        {% endif %}
     </div>
-</section>
 
+    {% include "dashboard/components/_stats.html" %}
+
+    {% if is_organizer %}
+        {% include "dashboard/components/_organizer_panel.html" %}
+    {% endif %}
+
+    {% if is_volunteer %}
+        {% include "dashboard/components/_volunteer_panel.html" %}
+    {% endif %}
+
+    {% if is_participant %}
+        {% include "dashboard/components/_participant_panel.html" %}
+    {% endif %}
+
+</div>
+</section>
 {% endblock %}

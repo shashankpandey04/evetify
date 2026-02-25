@@ -29,7 +29,9 @@ class RegistrationForm(forms.ModelForm):
             "email",
             "phone_number",
             "cityName",
-            "countryName"
+            "countryName",
+            "gender",
+            "date_of_birth",
         ]
 
     def clean(self):

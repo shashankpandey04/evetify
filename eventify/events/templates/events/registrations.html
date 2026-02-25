@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Event Analytics | Eventify{% endblock %}
+{% block title %}Event Registrations | Eventify{% endblock %}
 
 {% block content %}
-<section class="py-24 bg-gradient-to-br from-gray-50 to-gray-100">
+<section class="bg-gradient-to-br from-gray-50 to-gray-100">
     <div class="max-w-4xl mx-auto px-6">
         <div class="p-8">
-            <h3 class="text-xl font-bold text-gray-900 mb-6"><i class="fa-solid fa-list text-emerald-600 mr-2"></i>Registrations ({{ registrations.count }})</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <h3 class="text-xl font-bold text-gray-900 mb-6"><i class="fa-solid fa-list text-emerald-600 mr-2"></i>Registrations</h3>
+
+            <div id="registrations-wrap" class="overflow-x-auto">
+                <div id="registrations-loading" class="py-12 text-center text-gray-500">Loading registrations…</div>
+                <div id="registrations-error" class="hidden py-12 text-center text-red-600"></div>
+
+                <table id="registrations-table" class="w-full text-sm hidden">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr class="text-gray-700">
                             <th class="px-6 py-3 text-left font-semibold">Participant</th>
@@ -17,25 +21,80 @@
                             <th class="px-6 py-3 text-left font-semibold">Registered</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for reg in registrations %}
-                        <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ reg.user.full_name|default:reg.user.username }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ reg.user.email }}</td>
-                            <td class="px-6 py-4 text-sm"><span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">{{ reg.created_at|date:'M d, Y' }}</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center py-12 text-gray-400">
-                                <i class="fa-solid fa-inbox text-3xl mb-2 block opacity-30"></i>
-                                <p>No registrations yet</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="registrations-body">
+                        <!-- populated by JS -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const eventId = "{{ event_id }}";
+    const loadingEl = document.getElementById('registrations-loading');
+    const errorEl = document.getElementById('registrations-error');
+    const tableEl = document.getElementById('registrations-table');
+    const bodyEl = document.getElementById('registrations-body');
+
+    if (!eventId) {
+        loadingEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+        errorEl.textContent = 'Event not specified.';
+        return;
+    }
+
+    fetch(`/events/api/v1/${eventId}/registrations/`, { credentials: 'same-origin' })
+        .then(res => res.json())
+        .then(data => {
+            loadingEl.classList.add('hidden');
+            if (data.error) {
+                errorEl.classList.remove('hidden');
+                errorEl.textContent = data.error;
+                return;
+            }
+
+            const regs = data.registrations || [];
+            if (regs.length === 0) {
+                errorEl.classList.remove('hidden');
+                errorEl.textContent = 'No registrations yet.';
+                return;
+            }
+
+            tableEl.classList.remove('hidden');
+            regs.forEach(reg => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-200 hover:bg-gray-50 transition';
+
+                const nameTd = document.createElement('td');
+                nameTd.className = 'px-6 py-4 font-medium text-gray-900';
+                nameTd.textContent = reg.user || reg.name || '—';
+
+                const emailTd = document.createElement('td');
+                emailTd.className = 'px-6 py-4 text-gray-600';
+                emailTd.textContent = reg.email || '—';
+
+                const dateTd = document.createElement('td');
+                dateTd.className = 'px-6 py-4 text-sm';
+                const badge = document.createElement('span');
+                badge.className = 'px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium';
+                badge.textContent = reg.registeredAt || reg.created_at || '—';
+                dateTd.appendChild(badge);
+
+                tr.appendChild(nameTd);
+                tr.appendChild(emailTd);
+                tr.appendChild(dateTd);
+                bodyEl.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            errorEl.textContent = 'Failed to load registrations.';
+            console.error(err);
+        });
+});
+</script>
+
 {% endblock %}

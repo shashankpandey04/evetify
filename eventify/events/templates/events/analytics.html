@@ -1,90 +1,191 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}Event Analytics | Eventify{% endblock %}
 
 {% block content %}
-<section class="py-24 bg-gradient-to-br from-gray-50 to-gray-100">
-    <div class="max-w-4xl mx-auto px-6">
-        <a href="{% url 'manage_events' %}" class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-6 font-medium">
-            <i class="fa-solid fa-arrow-left"></i> Back to Manage
-        </a>
-        
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-8 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-                <h2 class="text-3xl font-bold text-gray-900">{{ event.title }}</h2>
-                <p class="text-gray-600 mt-1">Edit your event details and manage registrations</p>
-            </div>
-                        
-            <div class="p-8 border-t border-gray-200">
-                <a href="{% url 'event_registrations' event.id %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition">
-                    <i class="fa-solid fa-list mr-2"></i> View Registrations
-                </a>
-                <a href="/attendance/{{ event.id}}/view" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition">
-                    <i class="fa-solid fa-user-check mr-2"></i> View Attendance
-                </a>
+<section class="py-10 bg-gray-50 min-h-screen">
+<div class="max-w-6xl mx-auto px-6">
+
+    <!-- HEADER -->
+    <div class="mb-10">
+        <h1 class="text-4xl font-bold text-gray-900">
+            Event Analytics
+        </h1>
+        <p class="text-gray-600 mt-2">
+            Understand registrations, demographics and participation insights.
+        </p>
+    </div>
+
+    <!-- LOADING -->
+    <div id="analytics-loading"
+         class="bg-white rounded-2xl p-10 text-center text-gray-500 shadow-sm">
+        Loading analytics...
+    </div>
+
+    <!-- CONTENT -->
+    <div id="analytics-content" class="hidden space-y-10">
+
+        <!-- EVENT TITLE -->
+        <div>
+            <h2 id="event-title"
+                class="text-2xl font-semibold text-indigo-600"></h2>
+        </div>
+
+        <!-- ================= KEY METRICS ================= -->
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <p class="text-sm text-gray-500">Total Registrations</p>
+                <h3 id="total-registrations"
+                    class="text-3xl font-bold text-gray-900 mt-2"></h3>
             </div>
 
-            <div class="p-8 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900 mb-6"><i class="fa-solid fa-pen-to-square text-indigo-600 mr-2"></i>Event Details</h3>
-                <form method="post" class="space-y-6">
-                    {% csrf_token %}
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-                            <input type="text" name="title" id="title" value="{{ event.title }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="date" class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
-                            <input type="date" name="date" id="date" value="{{ event.date|date:'Y-m-d' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="startTime" class="block text-sm font-semibold text-gray-700 mb-2">Start Time</label>
-                            <input type="datetime-local" name="startTime" id="startTime" value="{{ event.startTime|date:'Y-m-d\TH:i' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="endTime" class="block text-sm font-semibold text-gray-700 mb-2">End Time</label>
-                            <input type="datetime-local" name="endTime" id="endTime" value="{{ event.endTime|date:'Y-m-d\TH:i' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                            <input type="text" name="location" id="location" value="{{ event.location }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="capacity" class="block text-sm font-semibold text-gray-700 mb-2">Capacity</label>
-                            <input type="number" name="capacity" id="capacity" value="{{ event.capacity }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div>
-                            <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                            <select name="status" id="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                {% for key, value in event.STATUS_CHOICES %}
-                                    <option value="{{ key }}" {% if event.status == key %}selected{% endif %}>{{ value }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                        <textarea name="description" id="description" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none">{{ event.description }}</textarea>
-                    </div>
-                    
-                    <div>
-                        <label for="volunteers" class="block text-sm font-semibold text-gray-700 mb-2">Assign Volunteers</label>
-                        <select name="volunteers" id="volunteers" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                            {% for user in all_volunteers %}
-                                <option value="{{ user.id }}" {% if user in event.volunteers.all %}selected{% endif %}>{{ user.full_name|default:user.username }} ({{ user.email }})</option>
-                            {% endfor %}
-                        </select>
-                        <p class="text-xs text-gray-500 mt-2">Hold Ctrl/Cmd to select multiple</p>
-                    </div>
-                    
-                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-lg hover:shadow-lg transition">
-                        <i class="fa-solid fa-check mr-2"></i> Save Changes
-                    </button>
-                </form>
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <p class="text-sm text-gray-500">Same City Registrations</p>
+                <h3 id="same-city-count"
+                    class="text-3xl font-bold text-indigo-600 mt-2"></h3>
+                <span class="text-xs text-gray-400">
+                    Event City: <span id="event-city"></span>
+                </span>
             </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center">
+                <div class="text-center">
+                    <p class="text-sm text-gray-500">Engagement Insight</p>
+                    <p class="text-lg font-semibold text-gray-900 mt-2">
+                        Audience Reach Overview
+                    </p>
+                </div>
+            </div>
+
         </div>
+
+        <!-- ================= DISTRIBUTIONS ================= -->
+        <div class="grid lg:grid-cols-2 gap-8">
+
+            <!-- CITY -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    City Distribution
+                </h3>
+                <ul id="city-distribution" class="space-y-2 text-sm"></ul>
+            </div>
+
+            <!-- COUNTRY -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    Country Distribution
+                </h3>
+                <ul id="country-distribution" class="space-y-2 text-sm"></ul>
+            </div>
+
+            <!-- GENDER -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    Gender Distribution
+                </h3>
+                <ul id="gender-distribution" class="space-y-2 text-sm"></ul>
+            </div>
+
+            <!-- AGE -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    Age Groups
+                </h3>
+                <ul id="age-groups" class="space-y-2 text-sm"></ul>
+            </div>
+
+        </div>
+
     </div>
+
+</div>
 </section>
+
+<script>
+function getEventIdFromUrl() {
+    const match = window.location.pathname.match(/events\/(\d+)\/analytics\//);
+    return match ? match[1] : null;
+}
+
+function renderDistribution(listEl, data, formatter) {
+
+    const total = Object.values(data).reduce((a, b) => a + b, 0);
+
+    listEl.innerHTML = Object.entries(data).map(([key, count]) => {
+
+        const percent = total > 0
+            ? ((count / total) * 100).toFixed(1)
+            : 0;
+
+        return `
+        <li class="space-y-1">
+
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-700">
+                    ${formatter(key)}
+                </span>
+                <span class="font-semibold text-gray-900">
+                    ${count} (${percent}%)
+                </span>
+            </div>
+
+            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-500 rounded-full transition-all duration-700"
+                     style="width:${percent}%">
+                </div>
+            </div>
+
+        </li>
+        `;
+    }).join("");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const eventId = getEventIdFromUrl();
+    if (!eventId) return;
+
+    fetch(`/events/api/v1/${eventId}/analytics/`)
+        .then(res => res.json())
+        .then(data => {
+            setTimeout(() => {
+                document.querySelectorAll('[style*="width"]').forEach(el => {
+                    el.style.opacity = "1";
+                });
+            }, 50);
+            document.getElementById("analytics-loading").classList.add("hidden");
+            document.getElementById("analytics-content").classList.remove("hidden");
+
+            document.getElementById("event-title").textContent = data.event;
+            document.getElementById("total-registrations").textContent = data.total_registrations;
+            document.getElementById("same-city-count").textContent = data.same_city_count;
+            document.getElementById("event-city").textContent = data.event_city;
+
+            renderDistribution(
+                document.getElementById("city-distribution"),
+                data.city_distribution,
+                key => key || "Unknown"
+            );
+
+            renderDistribution(
+                document.getElementById("country-distribution"),
+                data.country_distribution,
+                key => key || "Unknown"
+            );
+
+            renderDistribution(
+                document.getElementById("gender-distribution"),
+                data.gender_distribution,
+                key => key.charAt(0).toUpperCase() + key.slice(1)
+            );
+
+            renderDistribution(
+                document.getElementById("age-groups"),
+                data.age_groups,
+                key => key.replace("_"," ").replace("over","Over ").replace("under","Under ")
+            );
+        });
+
+});
+</script>
 {% endblock %}

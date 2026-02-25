@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Event Analytics | Eventify{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-4xl mx-auto px-6">
+        <a href="{% url 'manage_events' %}" class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-6 font-medium">
+            <i class="fa-solid fa-arrow-left"></i> Back to Manage
+        </a>
+        
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
+                <h2 class="text-3xl font-bold text-gray-900">{{ event.title }}</h2>
+                <p class="text-gray-600 mt-1">Edit your event details and manage registrations</p>
+            </div>
+            <div class="p-8 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 mb-6"><i class="fa-solid fa-pen-to-square text-indigo-600 mr-2"></i>Event Details</h3>
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Title</label>
+                            <input type="text" name="title" id="title" value="{{ event.title }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="date" class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                            <input type="date" name="date" id="date" value="{{ event.date|date:'Y-m-d' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="startTime" class="block text-sm font-semibold text-gray-700 mb-2">Start Time</label>
+                            <input type="datetime-local" name="startTime" id="startTime" value="{{ event.startTime|date:'Y-m-d\TH:i' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="endTime" class="block text-sm font-semibold text-gray-700 mb-2">End Time</label>
+                            <input type="datetime-local" name="endTime" id="endTime" value="{{ event.endTime|date:'Y-m-d\TH:i' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                            <input type="text" name="location" id="location" value="{{ event.location }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="cityName" class="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                            <input type="text" name="cityName" id="cityName" value="{{ event.cityName }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="countryName" class="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                            <input type="text" name="countryName" id="countryName" value="{{ event.countryName }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="capacity" class="block text-sm font-semibold text-gray-700 mb-2">Capacity</label>
+                            <input type="number" name="capacity" id="capacity" value="{{ event.capacity }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                            <select name="status" id="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                                {% for key, value in event.STATUS_CHOICES %}
+                                    <option value="{{ key }}" {% if event.status == key %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                        <textarea name="description" id="description" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none">{{ event.description }}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="volunteers" class="block text-sm font-semibold text-gray-700 mb-2">Assign Volunteers</label>
+                        <select name="volunteers" id="volunteers" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            {% for user in all_volunteers %}
+                                <option value="{{ user.id }}" {% if user in event.volunteers.all %}selected{% endif %}>{{ user.full_name|default:user.username }} ({{ user.email }})</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-gray-500 mt-2">Hold Ctrl/Cmd to select multiple</p>
+                    </div>
+                    <button type="submit" class="flex-1 w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-lg hover:shadow-lg transition">
+                        <i class="fa-solid fa-check mr-2"></i> Save Changes
+                    </button>
+                </form>
+                <form id="delete-event-form">
+                    {% csrf_token %}
+                    <input value="{{event.id}}" hidden id="eventID" name="eventID">
+                    <button type="submit" id="delete-event-btn" class="flex-1 w-full px-6 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-lg hover:shadow-lg transition">
+                        <i class="fa-solid fa-trash mr-2"></i> Delete Event
+                    </button>
+                </form>
+                <div id="delete-message" class="mt-4 text-center text-sm font-medium hidden"></div>
+            <script>
+            function getCSRFToken() {
+                return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const form = document.getElementById("delete-event-form");
+                const btn = document.getElementById("delete-event-btn");
+                const msg = document.getElementById("delete-message");
+                if (!form) return;
+                form.addEventListener("submit", async function(e) {
+                    e.preventDefault();
+                    btn.disabled = true;
+                    btn.textContent = "Deleting...";
+                    msg.classList.add("hidden");
+                    msg.textContent = "";
+                    const body = new URLSearchParams();
+                    body.append("eventID", document.getElementById("eventID").value);
+                    try {
+                        const res = await fetch("{% url 'delete_event' %}", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": getCSRFToken(),
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body
+                        });
+                        const data = await res.json();
+                        msg.classList.remove("hidden");
+                        if (res.ok) {
+                            msg.className = "mt-4 text-center text-green-600 text-sm font-semibold";
+                            msg.textContent = data.message;
+                        } else {
+                            msg.className = "mt-4 text-center text-red-600 text-sm font-semibold";
+                            msg.textContent = data.message || "Could not delete event.";
+                            btn.disabled = false;
+                            btn.textContent = "Delete Event";
+                        }
+                    } catch {
+                        msg.className = "mt-4 text-center text-red-600 text-sm font-semibold";
+                        msg.textContent = "Something went wrong.";
+                        btn.disabled = false;
+                        btn.textContent = "Delete Event";
+                    }
+                });
+            });
+            </script>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

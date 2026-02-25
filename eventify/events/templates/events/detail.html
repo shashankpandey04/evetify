@@ -4,82 +4,182 @@
 {% block title %}{{ event.title }} | Eventify{% endblock %}
 
 {% block content %}
-<section class="py-6">
-    <div class="max-w-3xl mx-auto ">
-        <a href="/events" class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-6 font-medium">
-            <i class="fa-solid fa-arrow-left"></i> Back to Events
-        </a>
-        
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-8 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-                <div class="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                        <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ event.title }}</h1>
-                        <span class="inline-block px-4 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 capitalize">{{ event.status }}</span>
-                    </div>
+<form id="csrf-form" style="display:none;">{% csrf_token %}</form>
+
+<section class="py-10">
+<div class="max-w-6xl mx-auto px-6">
+
+    <!-- Back -->
+    <a href="/events"
+       class="text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-2 mb-6">
+        <i class="fa-solid fa-arrow-left"></i> Back to Events
+    </a>
+
+    <!-- MAIN GRID (Flipkart style) -->
+    <div class="grid lg:grid-cols-3 gap-12">
+
+        <!-- LEFT CONTENT -->
+        <div class="lg:col-span-2 space-y-8">
+
+            <!-- TITLE AREA -->
+            <div>
+                <span class="text-sm font-semibold text-indigo-600 uppercase tracking-wide">
+                    {{ event.status }}
+                </span>
+
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mt-2 leading-tight">
+                    {{ event.title }}
+                </h1>
+
+                <!-- META LINE -->
+                <div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-gray-600 text-sm">
+
+                    <span class="flex items-center gap-2">
+                        <i class="fa-regular fa-calendar"></i>
+                        {{ event.date|date:'l, F j, Y' }}
+                    </span>
+
+                    <span class="flex items-center gap-2">
+                        <i class="fa-regular fa-clock"></i>
+                        {{ event.startTime|date:'H:i' }} — {{ event.endTime|date:'H:i' }}
+                    </span>
+
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot"></i>
+                        {{ event.cityName }}, {{ event.countryName }}
+                    </span>
+
                 </div>
-                <p class="text-lg text-gray-600">{{ event.description }}</p>
             </div>
-            <div class="p-8 space-y-4">
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Date & Time</h3>
-                        <p class="text-lg text-gray-900 font-semibold">{{ event.date|date:'l, F j, Y' }}</p>
-                        <p class="text-gray-600">{{ event.startTime|date:'H:i' }} → {{ event.endTime|date:'H:i' }}</p>
+
+            <!-- DESCRIPTION -->
+            <div class="prose max-w-none text-gray-700 text-lg leading-relaxed">
+                {{ event.description }}
+            </div>
+
+            <!-- ORGANIZER (inline style, not boxed) -->
+            <div class="pt-6 border-t">
+
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">
+                    Organized By
+                </h3>
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                        {{ event.organizer.username|slice:":1"|upper }}
                     </div>
+
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Location</h3>
-                        <p class="text-lg text-gray-900 font-semibold flex items-center gap-2">
-                            <i class="fa-solid fa-location-dot text-indigo-500"></i>
-                            {{ event.location }}
+                        <p class="font-semibold text-gray-900">
+                            {{ event.organizer.full_name|default:event.organizer.username }}
+                        </p>
+                        <p class="text-gray-500 text-sm">
+                            {{ event.organizer.email }}
                         </p>
                     </div>
                 </div>
-                
-                <div class="border-t border-gray-200 pt-6 grid md:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Organizer</h3>
-                        <p class="text-lg text-gray-900 font-semibold">{{ event.organizer.full_name|default:event.organizer.username }}</p>
-                        <p class="text-gray-600">{{ event.organizer.email }}</p>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Capacity</h3>
-                        <p class="text-lg text-gray-900 font-semibold">{{ event.capacity|default:'Unlimited' }}</p>
-                    </div>
-                </div>
+
             </div>
-            <div class="p-8 border-t border-gray-200 bg-gray-50 space-y-4">
-                {% if not user.is_authenticated %}
-                <button class="w-full px-6 py-3 bg-gray-300 text-gray-500 font-semibold rounded-lg" disabled>
-                    <i class="fa-solid fa-lock mr-2"></i> Login Required to Register
-                </button>
-                {% else %}
-                    {% if user in event.registerevent.all %}
-                    <form method="post" action="/events/api/v1/unregister/" class="flex gap-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="eventID" value="{{ event.eventID }}">
-                        <button type="submit" class="flex-1 px-6 py-3 bg-green-100 text-green-700 font-semibold rounded-lg hover:bg-green-200 transition">
-                            <i class="fa-solid fa-check mr-2"></i> Unregister
+
+        </div>
+
+        <!-- RIGHT SIDEBAR (Flipkart purchase panel) -->
+        <div class="lg:sticky top-24 h-fit">
+
+            <div class="space-y-6">
+
+                <!-- Registration Panel -->
+                <div class="p-6 rounded-2xl border border-gray-200">
+
+                    <p class="text-sm text-gray-500">Event Capacity</p>
+                    <p class="text-2xl font-bold text-gray-900 mb-6">
+                        {{ event.capacity|default:"Unlimited" }}
+                    </p>
+
+                    {% if not user.is_authenticated %}
+                        <button class="w-full py-3 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed">
+                            Login Required
                         </button>
-                    </form>
                     {% else %}
-                    <form method="post" action="/events/api/v1/register/" class="flex gap-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="eventID" value="{{ event.eventID }}">
-                        <button type="submit" class="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
-                            <i class="fa-solid fa-pen-to-square mr-2"></i> Register
+                        <button id="register-btn"
+                            type="button"
+                            data-registered="false"
+                            class="w-full py-3 bg-indigo-600 text-white rounded-lg
+                                   hover:bg-indigo-700 font-semibold transition">
+                            Register Now
                         </button>
-                    </form>
                     {% endif %}
-                {% endif %}
-                
-                {% if user.is_authenticated and user.role != "participant" and user in event.volunteers.all or user.role == "organizer" %}
-                <a href="/attendance/mark/{{ event.eventID }}" class="w-full block px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg hover:shadow-lg transition text-center">
-                    <i class="fa-solid fa-clock mr-2"></i> Mark Attendance
-                </a>
-                {% endif %}
+
+                    <!-- Location detail -->
+                    <div class="mt-6 text-sm text-gray-600">
+                        <p class="flex items-start gap-2">
+                            <i class="fa-solid fa-location-dot mt-1 text-indigo-500"></i>
+                            {{ event.location }},
+                            {{ event.cityName }},
+                            {{ event.countryName }}
+                        </p>
+                    </div>
+
+                </div>
+
             </div>
         </div>
+
     </div>
+</div>
 </section>
+<script>
+
+function getCSRFToken() {
+    const tokenInput = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]');
+    if (tokenInput) return tokenInput.value;
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("register-btn");
+    if (!btn) return;
+    const eventID = "{{ event.eventID }}";
+    fetch(`/events/api/v1/is-registered/?eventID=${eventID}`)
+        .then(res => res.json())
+        .then(data => {
+            updateButton(btn, data.is_registered);
+        });
+
+    btn.addEventListener("click", async () => {
+        if (btn.disabled) return;
+        const registered = btn.dataset.registered === "true";
+        const url = registered ? "/events/api/v1/unregister/" : "/events/api/v1/register/";
+        const formData = new FormData();
+        formData.append("eventID", eventID);
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken()
+            },
+            body: formData
+        });
+        try {
+            const data = await response.json();
+            if (data.success) {
+                updateButton(btn, !registered);
+            }
+        } catch (e) {
+            location.reload();
+        }
+    });
+    function updateButton(btn, registered) {
+        btn.dataset.registered = registered;
+        btn.innerHTML = registered
+            ? '<i class="fa-solid fa-check mr-2"></i> Unregister'
+            : '<i class="fa-solid fa-pen-to-square mr-2"></i> Register';
+        btn.classList.toggle("bg-green-100", registered);
+        btn.classList.toggle("text-green-700", registered);
+        btn.classList.toggle("bg-indigo-600", !registered);
+        btn.classList.toggle("text-white", !registered);
+        btn.classList.toggle("hover:bg-green-200", registered);
+        btn.classList.toggle("hover:bg-indigo-700", !registered);
+    }
+});
+</script>
 {% endblock %}

@@ -31,7 +31,12 @@ class Event(models.Model):
 
     location = models.CharField(max_length=255)
 
+    cityName = models.CharField(max_length=100)
+    countryName = models.CharField(max_length=100)
+
     date = models.DateField()
+
+    bannerUrl = models.URLField(max_length=500, blank=True, null=True)
 
     startTime = models.DateTimeField()
     endTime = models.DateTimeField()
